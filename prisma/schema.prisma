@@ -1,0 +1,465 @@
+// Esquema de datos - Plataforma escolar Galileo EDU
+// Ver: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  DIRECTOR
+  COORDINADOR
+  PROFESOR
+  ALUMNO
+  APODERADO
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum LevelType {
+  INICIAL
+  PRIMARIA
+  SECUNDARIA
+  ACADEMIA
+}
+
+enum Gender {
+  MASCULINO
+  FEMENINO
+}
+
+enum EnrollmentStatus {
+  PENDING
+  ENROLLED
+  WITHDRAWN
+}
+
+enum Term {
+  P1
+  P2
+  P3
+  P4
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  JUSTIFIED
+}
+
+enum AcademyDay {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+enum AcademyEnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  WITHDRAWN
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TARJETA
+  TRANSFERENCIA
+  DEPOSITO
+  YAPE
+  PLIN
+}
+
+// ---------------------------------------------------------------------------
+// Autenticación (Auth.js / NextAuth) + Usuarios y roles
+// ---------------------------------------------------------------------------
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String     @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  role          Role       @default(ALUMNO)
+  status        UserStatus @default(ACTIVE)
+  phone         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  student  Student? @relation("StudentUser")
+  guardianOf Student[] @relation("StudentGuardian")
+
+  @@index([role])
+  @@map("users")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  sessionToken String   @id
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Estructura escolar
+// ---------------------------------------------------------------------------
+
+model AcademicYear {
+  id        String   @id @default(cuid())
+  year      Int      @unique
+  name      String
+  startDate DateTime?
+  endDate   DateTime?
+  isActive  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sections    Section[]
+  enrollments Enrollment[]
+  attendances Attendance[]
+  payments    Payment[]
+
+  @@map("academic_years")
+}
+
+model Level {
+  id    String    @id @default(cuid())
+  name  String
+  type  LevelType @unique
+  order Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  grades Grade[]
+
+  @@map("levels")
+}
+
+model Grade {
+  id      String @id @default(cuid())
+  levelId String
+  name    String
+  order   Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  level    Level     @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  sections Section[]
+  courses  Course[]
+
+  @@unique([levelId, name])
+  @@map("grades")
+}
+
+model Section {
+  id             String  @id @default(cuid())
+  gradeId        String
+  academicYearId String
+  name           String
+  capacity       Int     @default(30)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  grade        Grade        @relation(fields: [gradeId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  enrollments  Enrollment[]
+  attendances  Attendance[]
+
+  @@unique([gradeId, academicYearId, name])
+  @@map("sections")
+}
+
+// ---------------------------------------------------------------------------
+// Alumnos y matrículas
+// ---------------------------------------------------------------------------
+
+model Student {
+  id        String     @id @default(cuid())
+  userId    String?    @unique
+  firstName String
+  lastName  String
+  document  String?    @unique
+  birthDate DateTime?
+  gender    Gender?
+  status    UserStatus @default(ACTIVE)
+
+  // Cuenta de acceso del apoderado (rol APODERADO) vinculada al alumno
+  guardianUserId String?
+
+  // Datos del apoderado (ficha básica)
+  guardianName  String?
+  guardianPhone String?
+  guardianEmail String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User?        @relation("StudentUser", fields: [userId], references: [id], onDelete: SetNull)
+  guardianUser User?        @relation("StudentGuardian", fields: [guardianUserId], references: [id], onDelete: SetNull)
+  enrollments Enrollment[]
+  recordGrades RecordGrade[]
+  attendances Attendance[]
+  academyEnrollments AcademyEnrollment[]
+  payments Payment[]
+
+  @@index([guardianUserId])
+  @@index([lastName, firstName])
+  @@map("students")
+}
+
+model Enrollment {
+  id             String           @id @default(cuid())
+  studentId      String
+  sectionId      String
+  academicYearId String
+  status         EnrollmentStatus @default(ENROLLED)
+  enrolledAt     DateTime         @default(now())
+  notes          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section      Section      @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+
+  @@unique([studentId, academicYearId])
+  @@index([sectionId])
+  @@index([academicYearId])
+  @@map("enrollments")
+}
+
+// ---------------------------------------------------------------------------
+// Cursos y notas
+// ---------------------------------------------------------------------------
+
+model Course {
+  id     String @id @default(cuid())
+  gradeId String
+  name   String
+  order  Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  grade        Grade         @relation(fields: [gradeId], references: [id], onDelete: Cascade)
+  recordGrades RecordGrade[]
+
+  @@unique([gradeId, name])
+  @@map("courses")
+}
+
+model RecordGrade {
+  id        String @id @default(cuid())
+  studentId String
+  courseId  String
+  term      Term
+  score     Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId, term])
+  @@map("record_grades")
+}
+
+// ---------------------------------------------------------------------------
+// Asistencia
+// ---------------------------------------------------------------------------
+
+model Attendance {
+  id             String           @id @default(cuid())
+  sectionId      String
+  academicYearId String
+  date           DateTime         @db.Date
+  studentId      String
+  status         AttendanceStatus @default(PRESENT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section      Section      @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+
+  @@unique([sectionId, date, studentId])
+  @@index([sectionId, date])
+  @@map("attendances")
+}
+
+// ---------------------------------------------------------------------------
+// Academia
+// ---------------------------------------------------------------------------
+
+model AcademyCourse {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal? @db.Decimal(10, 2)
+  active      Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  schedules   AcademySchedule[]
+  enrollments AcademyEnrollment[]
+
+  @@map("academy_courses")
+}
+
+model AcademySchedule {
+  id           String     @id @default(cuid())
+  courseId     String
+  name         String
+  day          AcademyDay
+  startTime    String
+  endTime      String
+  teacherName  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course AcademyCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("academy_schedules")
+}
+
+model AcademyEnrollment {
+  id        String                  @id @default(cuid())
+  studentId String
+  courseId  String
+  status    AcademyEnrollmentStatus @default(ACTIVE)
+  enrolledAt DateTime               @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  AcademyCourse @relation(fields: [courseId], references: [id], onDelete: Restrict)
+
+  @@unique([studentId, courseId])
+  @@map("academy_enrollments")
+}
+
+// ---------------------------------------------------------------------------
+// Pagos
+// ---------------------------------------------------------------------------
+
+model PaymentConcept {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  amount      Decimal? @db.Decimal(10, 2)
+  active      Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments Payment[]
+
+  @@map("payment_concepts")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  receiptNumber String        @unique
+  studentId     String
+  academicYearId String
+  conceptId     String
+  amount        Decimal       @db.Decimal(10, 2)
+  date          DateTime      @db.Date
+  method        PaymentMethod
+  reference     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student  Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear  AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  concept  PaymentConcept @relation(fields: [conceptId], references: [id], onDelete: Restrict)
+
+  @@index([studentId, date])
+  @@map("payments")
+}
+
+// ---------------------------------------------------------------------------
+// Configuración de la institución (registro único)
+// ---------------------------------------------------------------------------
+
+model SchoolSettings {
+  id               String   @id @default("default")
+  name             String   @default("Institución Educativa Particular Galileo")
+  shortName        String   @default("Galileo EDU")
+  slogan           String?
+  ruc              String?
+  address          String?
+  phone            String?
+  email            String?
+  website          String?
+  logoUrl          String?
+  directorName     String?
+  directorDocument String?
+  primaryColor     String   @default("#0f766e")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("school_settings")
+}

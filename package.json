@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma generate",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -16,6 +17,12 @@
     "db:setup": "prisma migrate deploy && tsx prisma/seed.ts",
     "db:backup": "node scripts/backup.mjs",
     "db:restore": "node scripts/restore.mjs"
+  },
+  "allowScripts": {
+    "@prisma/engines": true,
+    "esbuild": true,
+    "prisma": true,
+    "unrs-resolver": true
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

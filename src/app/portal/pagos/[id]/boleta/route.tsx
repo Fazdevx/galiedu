@@ -1,7 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 import { BoletaDocument } from "@/lib/pdf/documents";
 import { buildBoletaData } from "@/lib/pdf/build";
-import { getSchoolSettings } from "@/lib/settings";
+import { getPdfSchoolInfo } from "@/lib/settings";
 import { auth } from "@/auth";
 import { canAccessPayment } from "@/lib/portal";
 
@@ -19,7 +19,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const data = await buildBoletaData(id);
   if (!data) return new Response("Boleta no encontrada", { status: 404 });
 
-  const school = await getSchoolSettings();
+  const school = await getPdfSchoolInfo();
   const blob = await pdf(<BoletaDocument data={data} school={school} />).toBlob();
 
   return new Response(blob, {

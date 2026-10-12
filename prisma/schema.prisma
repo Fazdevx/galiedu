@@ -100,6 +100,7 @@ model User {
   role          Role       @default(ALUMNO)
   status        UserStatus @default(ACTIVE)
   phone         String?
+  sessionVersion Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -108,6 +109,7 @@ model User {
   sessions Session[]
   student  Student? @relation("StudentUser")
   guardianOf Student[] @relation("StudentGuardian")
+  passwordResetTokens PasswordResetToken[]
 
   @@index([role])
   @@map("users")
@@ -409,6 +411,7 @@ model PaymentConcept {
   description String?
   amount      Decimal? @db.Decimal(10, 2)
   active      Boolean  @default(true)
+  recurring   Boolean  @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -454,7 +457,8 @@ model SchoolSettings {
   phone            String?
   email            String?
   website          String?
-  logoUrl          String?
+  logoData         Bytes?
+  logoMime         String?
   directorName     String?
   directorDocument String?
   primaryColor     String   @default("#0f766e")
@@ -462,4 +466,47 @@ model SchoolSettings {
   updatedAt DateTime @updatedAt
 
   @@map("school_settings")
+}
+
+// ---------------------------------------------------------------------------
+// Seguridad y operación
+// ---------------------------------------------------------------------------
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+  @@map("rate_limits")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  actorEmail String?
+  action     String
+  entity     String
+  entityId   String?
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+  @@map("audit_logs")
 }

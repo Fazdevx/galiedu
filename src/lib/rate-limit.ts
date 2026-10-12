@@ -39,9 +39,16 @@ export function createRateLimiter(limit: number, windowMs: number) {
   };
 }
 
+/** Lector de cabeceras (p. ej. `Headers` de fetch/`next/headers`). */
+type HeaderGetter = { get(name: string): string | null };
+
+/** Fuente de cabeceras compatible con `Request` y `next/headers`. */
+export type HeaderSource = HeaderGetter | { headers: HeaderGetter };
+
 /** IP del cliente a partir de las cabeceras de proxy habituales. */
-export function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
+export function clientIp(source: HeaderSource): string {
+  const headerList = "get" in source ? source : source.headers;
+  const forwarded = headerList.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0]!.trim();
-  return request.headers.get("x-real-ip") ?? "unknown";
+  return headerList.get("x-real-ip") ?? "unknown";
 }

@@ -10,6 +10,7 @@ import {
   ClipboardList,
   FileText,
   GraduationCap,
+  History,
   LayoutDashboard,
   LayoutGrid,
   Layers,
@@ -70,7 +71,10 @@ const groups: { label: string; items: { href: string; label: string; icon: React
   },
   {
     label: "Sistema",
-    items: [{ href: "/admin/configuracion", label: "Configuración", icon: Settings }],
+    items: [
+      { href: "/admin/configuracion", label: "Configuración", icon: Settings },
+      { href: "/admin/auditoria", label: "Auditoría", icon: History },
+    ],
   },
 ];
 

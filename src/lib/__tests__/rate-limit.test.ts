@@ -57,4 +57,9 @@ describe("clientIp", () => {
   it("returns 'unknown' when no header is present", () => {
     expect(clientIp(new Request("http://localhost"))).toBe("unknown");
   });
+
+  it("accepts a Headers-like object directly (next/headers)", () => {
+    const headerList = new Headers({ "x-forwarded-for": "10.0.0.1, 10.0.0.2" });
+    expect(clientIp(headerList)).toBe("10.0.0.1");
+  });
 });

@@ -259,16 +259,16 @@ async function main() {
   });
 
   // Pagos demo: conceptos + boletas
-  const concepts: { name: string; description: string; amount: number }[] = [
+  const concepts: { name: string; description: string; amount: number; recurring?: boolean }[] = [
     { name: "Matrícula 2025", description: "Matrícula anual", amount: 150 },
-    { name: "Pensión Marzo", description: "Pensión mensual de primaria", amount: 350 },
-    { name: "Mensualidad Academia", description: "Álgebra - Grupo Tarde", amount: 180 },
+    { name: "Pensión Marzo", description: "Pensión mensual de primaria", amount: 350, recurring: true },
+    { name: "Mensualidad Academia", description: "Álgebra - Grupo Tarde", amount: 180, recurring: true },
   ];
   for (const c of concepts) {
     await prisma.paymentConcept.upsert({
       where: { name: c.name },
-      update: {},
-      create: { name: c.name, description: c.description, amount: new Prisma.Decimal(c.amount) },
+      update: { recurring: c.recurring ?? false },
+      create: { name: c.name, description: c.description, amount: new Prisma.Decimal(c.amount), recurring: c.recurring ?? false },
     });
   }
 

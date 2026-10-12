@@ -9,6 +9,7 @@ import { ServerActionButton } from "@/components/admin/server-action-button";
 import { TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataList, type DataListRow } from "@/components/ui/data-list";
 import { ROLE_LABELS } from "@/lib/roles";
+import { PASSWORD_HINT } from "@/lib/password";
 import type { Role } from "@/generated/prisma/client";
 
 export const metadata = { title: "Usuarios" };
@@ -69,7 +70,8 @@ export default async function UsersPage() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="password">Contraseña inicial</Label>
-                <Input id="password" name="password" type="password" required minLength={6} placeholder="Mínimo 6 caracteres" />
+                <Input id="password" name="password" type="password" required minLength={8} placeholder="Mínimo 8 caracteres" />
+                <p className="text-xs text-gray-400">{PASSWORD_HINT}</p>
               </div>
             </CardContent>
           </Form>

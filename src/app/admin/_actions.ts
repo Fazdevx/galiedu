@@ -8,6 +8,9 @@ import { prisma } from "@/lib/prisma";
 import { isAdmin, isStaff } from "@/lib/roles";
 import { dayRangeUTC, parseDateOnly } from "@/lib/date";
 import { buildReceiptNumber, isUniqueViolation } from "@/lib/receipts";
+import { logAudit } from "@/lib/audit";
+import { passwordSchema } from "@/lib/password";
+import { sendPaymentReceipt } from "@/lib/notifications";
 import { Prisma, type Role, type Term, type AcademyDay, type AcademyEnrollmentStatus, type PaymentMethod, type AttendanceStatus } from "@/generated/prisma/client";
 
 async function requireAdmin(): Promise<FormState | null> {
@@ -274,7 +277,7 @@ const userSchema = z.object({
   email: z.string().email(),
   role: z.enum(["SUPER_ADMIN", "ADMIN", "DIRECTOR", "COORDINADOR", "PROFESOR", "ALUMNO", "APODERADO"]),
   status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).default("ACTIVE"),
-  password: z.string().min(6),
+  password: passwordSchema,
 });
 
 export async function createUser(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -288,7 +291,7 @@ export async function createUser(_prev: FormState, formData: FormData): Promise<
     status: formData.get("status") || "ACTIVE",
     password: formData.get("password"),
   });
-  if (!parsed.success) return { error: "Datos inválidos. La contraseña debe tener al menos 6 caracteres." };
+  if (!parsed.success) return { error: `Datos inválidos. ${parsed.error.issues[0]?.message ?? "Revisa los campos."}` };
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
 
@@ -306,6 +309,7 @@ export async function createUser(_prev: FormState, formData: FormData): Promise<
     return { error: "Ya existe un usuario con ese correo." };
   }
 
+  await logAudit({ action: "user.create", entity: "User", entityId: parsed.data.email, metadata: { role: parsed.data.role } });
   revalidatePath("/admin/usuarios");
   return OK;
 }
@@ -335,10 +339,18 @@ export async function updateUserStatus(formData: FormData): Promise<FormState> {
   }
 
   try {
-    await prisma.user.update({ where: { id }, data: { status } as never });
+    await prisma.user.update({
+      where: { id },
+      data: {
+        status,
+        // Revoca las sesiones activas del usuario al desactivarlo.
+        ...(status !== "ACTIVE" ? { sessionVersion: { increment: 1 } } : {}),
+      } as never,
+    });
   } catch {
     return { error: "No se pudo actualizar el estado del usuario." };
   }
+  await logAudit({ action: "user.updateStatus", entity: "User", entityId: id, metadata: { status } });
   revalidatePath("/admin/usuarios");
   return OK;
 }
@@ -369,6 +381,7 @@ export async function deleteUser(formData: FormData): Promise<FormState> {
   } catch {
     return { error: "No se pudo eliminar el usuario." };
   }
+  await logAudit({ action: "user.delete", entity: "User", entityId: id });
   revalidatePath("/admin/usuarios");
   return OK;
 }
@@ -413,7 +426,7 @@ export async function createStudent(_prev: FormState, formData: FormData): Promi
   if (!parsed.success) return { error: "Datos inválidos. Revisa la ficha del alumno." };
 
   try {
-    await prisma.student.create({
+    const created = await prisma.student.create({
       data: {
         firstName: parsed.data.firstName,
         lastName: parsed.data.lastName,
@@ -427,6 +440,7 @@ export async function createStudent(_prev: FormState, formData: FormData): Promi
         status: parsed.data.status,
       },
     });
+    await logAudit({ action: "student.create", entity: "Student", entityId: created.id });
   } catch {
     return { error: "Ya existe un alumno con ese documento (DNI/CI)." };
   }
@@ -461,6 +475,7 @@ export async function updateStudent(_prev: FormState, formData: FormData): Promi
         status: parsed.data.status,
       },
     });
+    await logAudit({ action: "student.update", entity: "Student", entityId: id });
   } catch {
     return { error: "Ese documento (DNI/CI) ya pertenece a otro alumno." };
   }
@@ -481,6 +496,7 @@ export async function deleteStudent(formData: FormData): Promise<FormState> {
   } catch {
     return { error: "No se pudo eliminar el alumno." };
   }
+  await logAudit({ action: "student.delete", entity: "Student", entityId: id });
   revalidatePath("/admin/alumnos");
   revalidatePath("/admin/matriculas");
   return OK;
@@ -525,6 +541,7 @@ export async function createEnrollment(_prev: FormState, formData: FormData): Pr
     return { error: "Ese alumno ya está matriculado este año académico." };
   }
 
+  await logAudit({ action: "enrollment.create", entity: "Enrollment", entityId: parsed.data.studentId, metadata: { sectionId: parsed.data.sectionId, academicYearId: parsed.data.academicYearId } });
   revalidatePath("/admin/matriculas");
   revalidatePath("/admin/alumnos");
   return OK;
@@ -559,6 +576,7 @@ export async function deleteEnrollment(formData: FormData): Promise<FormState> {
   } catch {
     return { error: "No se pudo eliminar la matrícula." };
   }
+  await logAudit({ action: "enrollment.delete", entity: "Enrollment", entityId: id });
   revalidatePath("/admin/matriculas");
   revalidatePath("/admin/alumnos");
   return OK;
@@ -689,6 +707,7 @@ export async function saveGrades(_prev: FormState, formData: FormData): Promise<
     return { error: "No se pudieron guardar las notas." };
   }
 
+  await logAudit({ action: "grades.save", entity: "RecordGrade", entityId: term, metadata: { term, count: parsed.data.length } });
   revalidatePath("/admin/notas");
   return OK;
 }
@@ -773,6 +792,7 @@ export async function saveAttendance(_prev: FormState, formData: FormData): Prom
     return { error: "No se pudo guardar la asistencia." };
   }
 
+  await logAudit({ action: "attendance.save", entity: "Attendance", entityId: sectionId, metadata: { date: parsed.data.date, count: byStudent.size } });
   revalidatePath("/admin/asistencia");
   return OK;
 }
@@ -988,6 +1008,7 @@ const paymentConceptSchema = z.object({
   name: z.string().min(2).max(150),
   description: z.string().max(500).optional().or(z.literal("")),
   amount: z.coerce.number().min(0).optional().or(z.literal("")),
+  recurring: z.boolean().default(false),
 });
 
 export async function createPaymentConcept(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -998,6 +1019,7 @@ export async function createPaymentConcept(_prev: FormState, formData: FormData)
     name: formData.get("name"),
     description: formData.get("description") || undefined,
     amount: formData.get("amount") || undefined,
+    recurring: formData.get("recurring") === "on",
   });
   if (!parsed.success) return { error: "Datos del concepto inválidos." };
 
@@ -1009,12 +1031,14 @@ export async function createPaymentConcept(_prev: FormState, formData: FormData)
         amount: parsed.data.amount === undefined || parsed.data.amount === ""
           ? null
           : new Prisma.Decimal(Number(parsed.data.amount)),
+        recurring: parsed.data.recurring,
       },
     });
   } catch {
     return { error: "No se pudo crear el concepto (¿ya existe con ese nombre?)." };
   }
 
+  await logAudit({ action: "concept.create", entity: "PaymentConcept", entityId: parsed.data.name });
   revalidatePath("/admin/pagos/conceptos");
   return OK;
 }
@@ -1047,6 +1071,7 @@ export async function deletePaymentConcept(formData: FormData): Promise<FormStat
   } catch {
     return { error: "No se pudo eliminar: el concepto tiene pagos registrados." };
   }
+  await logAudit({ action: "concept.delete", entity: "PaymentConcept", entityId: id });
   revalidatePath("/admin/pagos/conceptos");
   return OK;
 }
@@ -1107,7 +1132,14 @@ export async function createPayment(_prev: FormState, formData: FormData): Promi
   for (let attempt = 0; attempt < 5; attempt++) {
     const receiptNumber = buildReceiptNumber(academicYear.year, await existingReceiptNumbers(academicYear.year));
     try {
-      await prisma.payment.create({ data: { ...data, receiptNumber } });
+      const created = await prisma.payment.create({ data: { ...data, receiptNumber } });
+      await sendPaymentReceipt(created.id);
+      await logAudit({
+        action: "payment.create",
+        entity: "Payment",
+        entityId: created.receiptNumber,
+        metadata: { studentId: parsed.data.studentId, conceptId: parsed.data.conceptId, amount: parsed.data.amount },
+      });
       revalidatePath("/admin/pagos");
       return OK;
     } catch (error) {
@@ -1130,6 +1162,7 @@ export async function deletePayment(formData: FormData): Promise<FormState> {
   } catch {
     return { error: "No se pudo anular el pago." };
   }
+  await logAudit({ action: "payment.delete", entity: "Payment", entityId: id });
   revalidatePath("/admin/pagos");
   return OK;
 }
@@ -1185,22 +1218,24 @@ export async function updateSchoolSettings(_prev: FormState, formData: FormData)
     primaryColor: parsed.data.primaryColor,
   };
 
-  let logoUrl: string | null | undefined;
+  let logo:
+    | { logoData: Uint8Array<ArrayBuffer> | null; logoMime: string | null }
+    | undefined;
   const file = formData.get("logoFile");
   if (file instanceof File && file.size > 0) {
     if (file.size > 800_000) return { error: "El logo no debe superar 800 KB." };
     if (!file.type.startsWith("image/")) return { error: "El logo debe ser una imagen (PNG/JPG/SVG)." };
-    const buffer = Buffer.from(await file.arrayBuffer());
-    logoUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    logo = { logoData: bytes, logoMime: file.type };
   } else if (formData.get("removeLogo")) {
-    logoUrl = null;
+    logo = { logoData: null, logoMime: null };
   }
 
   try {
     await prisma.schoolSettings.upsert({
       where: { id: "default" },
-      update: logoUrl === undefined ? data : { ...data, logoUrl },
-      create: { id: "default", ...data, logoUrl: logoUrl ?? null },
+      update: logo === undefined ? data : { ...data, ...logo },
+      create: { id: "default", ...data, ...(logo ?? { logoData: null, logoMime: null }) },
     });
   } catch {
     return { error: "No se pudo guardar la configuración." };
@@ -1209,5 +1244,6 @@ export async function updateSchoolSettings(_prev: FormState, formData: FormData)
   revalidatePath("/admin/configuracion");
   revalidatePath("/admin");
   revalidatePath("/portal");
+  await logAudit({ action: "settings.update", entity: "SchoolSettings", entityId: "default" });
   return { success: "Configuración guardada." };
 }

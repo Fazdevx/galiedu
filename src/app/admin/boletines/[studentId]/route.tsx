@@ -1,7 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 import { BoletínDocument } from "@/lib/pdf/documents";
 import { buildBoletinData } from "@/lib/pdf/build";
-import { getSchoolSettings } from "@/lib/settings";
+import { getPdfSchoolInfo } from "@/lib/settings";
 import { auth } from "@/auth";
 import { isStaff } from "@/lib/roles";
 
@@ -20,7 +20,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ studentI
   const data = await buildBoletinData(studentId, yearId);
   if (!data) return new Response("No se pudo generar el boletín (sin matrícula o datos).", { status: 404 });
 
-  const school = await getSchoolSettings();
+  const school = await getPdfSchoolInfo();
   const blob = await pdf(<BoletínDocument data={data} school={school} />).toBlob();
 
   return new Response(blob, {

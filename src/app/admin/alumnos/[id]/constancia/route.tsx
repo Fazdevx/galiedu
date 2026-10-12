@@ -1,7 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 import { ConstanciaDocument } from "@/lib/pdf/documents";
 import { buildConstanciaData } from "@/lib/pdf/build";
-import { getSchoolSettings } from "@/lib/settings";
+import { getPdfSchoolInfo } from "@/lib/settings";
 import { auth } from "@/auth";
 import { isStaff } from "@/lib/roles";
 
@@ -19,7 +19,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return new Response("El estudiante no tiene matrícula vigente en el año activo", { status: 404 });
   }
 
-  const school = await getSchoolSettings();
+  const school = await getPdfSchoolInfo();
   const blob = await pdf(<ConstanciaDocument data={data} school={school} />).toBlob();
 
   return new Response(blob, {

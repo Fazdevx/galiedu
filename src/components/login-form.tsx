@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -108,6 +109,10 @@ export function LoginForm() {
             "Ingresar"
           )}
         </Button>
+
+        <Link href="/recuperar" className="text-center text-sm text-gray-500 hover:text-gray-800">
+          ¿Olvidaste tu contraseña?
+        </Link>
       </form>
 
       {SHOW_DEMO_ACCOUNTS ? (

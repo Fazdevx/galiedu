@@ -46,6 +46,10 @@ export default async function PaymentConceptsPage() {
                 <Label htmlFor="amount">Monto sugerido (S/)</Label>
                 <Input id="amount" name="amount" type="number" min={0} step="0.01" placeholder="Ej. 150" />
               </div>
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input type="checkbox" name="recurring" className="h-4 w-4 rounded border-gray-300" />
+                Concepto recurrente (ej. pensión mensual)
+              </label>
             </CardContent>
           </Form>
         </Card>
@@ -65,7 +69,10 @@ export default async function PaymentConceptsPage() {
                 <TableRow key={c.id}>
                   <TableCell>
                     <p className="font-medium">{c.name}</p>
-                    {c.description ? <p className="text-xs text-gray-500">{c.description}</p> : null}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {c.description ? <p className="text-xs text-gray-500">{c.description}</p> : null}
+                      {c.recurring ? <Badge tone="blue">Recurrente</Badge> : null}
+                    </div>
                   </TableCell>
                   <TableCell className="text-gray-700">
                     {c.amount !== null ? `S/ ${Number(c.amount).toFixed(2)}` : "—"}

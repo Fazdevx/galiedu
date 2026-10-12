@@ -6,6 +6,17 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(32, "AUTH_SECRET debe tener al menos 32 caracteres."),
   AUTH_URL: z.string().url("AUTH_URL debe ser una URL válida.").optional(),
   NEXT_PUBLIC_APP_NAME: z.string().min(1).optional(),
+
+  // Correo saliente (opcional: sin SMTP_HOST los correos se registran en consola).
+  SMTP_HOST: z.string().min(1).optional(),
+  SMTP_PORT: z.coerce.number().int().positive().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().optional(),
+  SMTP_SECURE: z.enum(["true", "false"]).optional(),
+
+  // Secreto para invocar los endpoints de tareas programadas (/api/cron/*).
+  CRON_SECRET: z.string().min(16, "CRON_SECRET debe tener al menos 16 caracteres.").optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

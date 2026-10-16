@@ -127,3 +127,16 @@ Conviene programarlos con un cron externo (p. ej. Vercel Cron, GitHub Actions o 
 
 `SUPER_ADMIN`, `ADMIN`, `DIRECTOR`, `COORDINADOR`, `PROFESOR`, `ALUMNO`, `APODERADO`.
 La lógica de permisos está en `src/lib/roles.ts` y el guard de acciones en `src/app/admin/_actions.ts`.
+
+Reglas de gestión de usuarios:
+
+- **Solo `SUPER_ADMIN`** crea, activa/desactiva y elimina usuarios (acciones `createUser`,
+  `updateUserStatus`, `deleteUser` protegidas con `requireSuperAdmin`).
+- **Solo `DIRECTOR`** envía solicitudes de creación de usuario desde *Admin → Solicitudes*
+  (rol a solicitar sin `SUPER_ADMIN`, email único).
+- **Solo `SUPER_ADMIN`** aprueba o rechaza solicitudes. Al aprobar, la cuenta se crea con una
+  contraseña aleatoria y se envía un correo con enlace de establecimiento de contraseña
+  (`/recuperar/{token}`, válido 24 h).
+- El menú lateral se filtra por rol según `src/components/admin/nav-config.ts`; los formularios
+  de gestión solo se renderizan para roles con permisos.
+

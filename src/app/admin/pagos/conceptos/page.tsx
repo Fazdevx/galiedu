@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createPaymentConcept, deletePaymentConcept, togglePaymentConcept } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +14,8 @@ import { DataList, type DataListRow } from "@/components/ui/data-list";
 export const metadata = { title: "Pagos · Conceptos" };
 
 export default async function PaymentConceptsPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const concepts = await prisma.paymentConcept.findMany({
     orderBy: { name: "asc" },
     include: { _count: { select: { payments: true } } },
@@ -26,7 +30,8 @@ export default async function PaymentConceptsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[340px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Nuevo concepto</CardTitle>
@@ -53,6 +58,7 @@ export default async function PaymentConceptsPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <DataList
           title="Listado"
@@ -80,6 +86,7 @@ export default async function PaymentConceptsPage() {
                   <TableCell className="text-gray-700">{c._count.payments}</TableCell>
                   <TableCell>{c.active ? <Badge tone="green">Activo</Badge> : <Badge tone="gray">Inactivo</Badge>}</TableCell>
                   <TableCell>
+                    {canManage ? (
                     <div className="flex items-center justify-end gap-2">
                       <ServerActionButton
                         action={togglePaymentConcept}
@@ -100,6 +107,7 @@ export default async function PaymentConceptsPage() {
                         </Button>
                       </ConfirmDelete>
                     </div>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ),

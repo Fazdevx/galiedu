@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createPayment, deletePayment } from "@/app/admin/_actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
@@ -23,6 +25,8 @@ const METHOD_LABELS: Record<PaymentMethod, string> = {
 };
 
 export default async function PaymentsPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const [payments, students, years, concepts] = await Promise.all([
     prisma.payment.findMany({
       orderBy: { date: "desc" },
@@ -44,7 +48,8 @@ export default async function PaymentsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "xl:grid-cols-[380px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Registrar pago</CardTitle>
@@ -108,6 +113,7 @@ export default async function PaymentsPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <DataList
           title="Historial de pagos"
@@ -153,6 +159,7 @@ export default async function PaymentsPage() {
                       <Link href={`/admin/pagos/${p.id}/boleta`} target="_blank">
                         <Button type="button" variant="outline" size="sm">Boleta PDF</Button>
                       </Link>
+                      {canManage ? (
                       <ConfirmDelete
                         action={deletePayment}
                         fields={{ id: p.id }}
@@ -162,6 +169,7 @@ export default async function PaymentsPage() {
                       >
                         <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                       </ConfirmDelete>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>

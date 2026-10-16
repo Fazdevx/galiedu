@@ -20,6 +20,12 @@ async function requireAdmin(): Promise<FormState | null> {
   return null;
 }
 
+async function requireSuperAdmin(): Promise<FormState | null> {
+  const session = await auth();
+  if (session?.user?.role !== "SUPER_ADMIN") return DENIED;
+  return null;
+}
+
 async function requireStaff(): Promise<FormState | null> {
   const session = await auth();
   const role = session?.user?.role;
@@ -281,7 +287,7 @@ const userSchema = z.object({
 });
 
 export async function createUser(_prev: FormState, formData: FormData): Promise<FormState> {
-  const denied = await requireAdmin();
+  const denied = await requireSuperAdmin();
   if (denied) return denied;
 
   const parsed = userSchema.safeParse({
@@ -315,7 +321,7 @@ export async function createUser(_prev: FormState, formData: FormData): Promise<
 }
 
 export async function updateUserStatus(formData: FormData): Promise<FormState> {
-  const denied = await requireAdmin();
+  const denied = await requireSuperAdmin();
   if (denied) return denied;
   const id = formString(formData, "id");
   const status = formString(formData, "status");
@@ -356,7 +362,7 @@ export async function updateUserStatus(formData: FormData): Promise<FormState> {
 }
 
 export async function deleteUser(formData: FormData): Promise<FormState> {
-  const denied = await requireAdmin();
+  const denied = await requireSuperAdmin();
   if (denied) return denied;
   const id = formString(formData, "id");
   if (!id) return { error: "Usuario no válido." };

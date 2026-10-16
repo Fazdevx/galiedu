@@ -10,6 +10,7 @@ import { signOutAction } from "@/components/admin/actions";
 import { Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { isAdmin, isStaff, ROLE_LABELS } from "@/lib/roles";
+import { NAV_ACCESS, navAccessAllowed } from "@/components/admin/nav-config";
 import { getSchoolSettings } from "@/lib/settings";
 import { prisma } from "@/lib/prisma";
 
@@ -18,6 +19,7 @@ export const dynamic = "force-dynamic";
 const links: Record<string, BreadcrumbEntry> = {
   "/admin": { area: "Inicio", page: "Dashboard" },
   "/admin/usuarios": { area: "Usuarios y estudiantes", page: "Usuarios" },
+  "/admin/solicitudes": { area: "Usuarios y estudiantes", page: "Solicitudes" },
   "/admin/alumnos": { area: "Usuarios y estudiantes", page: "Alumnos" },
   "/admin/matriculas": { area: "Usuarios y estudiantes", page: "Matrículas" },
   "/admin/cursos": { area: "Académico", page: "Cursos" },
@@ -43,6 +45,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const { user } = session;
   const roleLabel = ROLE_LABELS[user.role] ?? user.role;
+  const visibleLinks = Object.fromEntries(
+    Object.entries(links).filter(([href]) => {
+      const access = NAV_ACCESS[href] ?? "all";
+      return navAccessAllowed(access, user.role);
+    }),
+  );
   const [school, activeYear] = await Promise.all([
     getSchoolSettings(),
     prisma.academicYear.findFirst({ where: { isActive: true }, select: { name: true, year: true } }),
@@ -83,10 +91,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   );
 
   return (
-    <PermissionsProvider isAdmin={isAdmin(user.role)}>
+    <PermissionsProvider isAdmin={isAdmin(user.role)} role={user.role}>
       <AppChrome
         baseLabel="Panel"
-        links={links}
+        links={visibleLinks}
         brand={brand}
         userName={user.name ?? "Usuario"}
         userRole={roleLabel}

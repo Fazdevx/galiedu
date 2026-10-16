@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createAcademyCourse, deleteAcademyCourse, toggleAcademyCourse } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
@@ -13,6 +15,8 @@ import { DataList, type DataListRow } from "@/components/ui/data-list";
 export const metadata = { title: "Academia · Cursos" };
 
 export default async function AcademyCoursesPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const courses = await prisma.academyCourse.findMany({
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { schedules: true, enrollments: true } } },
@@ -27,7 +31,8 @@ export default async function AcademyCoursesPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[340px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Nuevo curso de academia</CardTitle>
@@ -50,6 +55,7 @@ export default async function AcademyCoursesPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <DataList
           title="Listado"
@@ -79,6 +85,8 @@ export default async function AcademyCoursesPage() {
                       <Link href={`/admin/academia/cursos/${c.id}`}>
                         <Button type="button" variant="outline" size="sm">Ver</Button>
                       </Link>
+                      {canManage ? (
+                      <>
                       <ServerActionButton
                         action={toggleAcademyCourse}
                         fields={{ id: c.id }}
@@ -95,6 +103,8 @@ export default async function AcademyCoursesPage() {
                       >
                         <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                       </ConfirmDelete>
+                      </>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createGrade, deleteGrade } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
@@ -18,6 +20,8 @@ const LEVEL_TYPE_LABELS: Record<LevelType, string> = {
 };
 
 export default async function GradesPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const [grades, levels] = await Promise.all([
     prisma.grade.findMany({ orderBy: [{ levelId: "asc" }, { order: "asc" }], include: { level: true } }),
     prisma.level.findMany({ orderBy: { order: "asc" } }),
@@ -32,7 +36,8 @@ export default async function GradesPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[320px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Nuevo grado</CardTitle>
@@ -59,6 +64,7 @@ export default async function GradesPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <Card>
           <CardHeader>
@@ -85,6 +91,7 @@ export default async function GradesPage() {
                     <TableCell className="text-gray-500">{g.order}</TableCell>
                     <TableCell>
                       <div className="flex justify-end">
+                        {canManage ? (
                         <ConfirmDelete
                           action={deleteGrade}
                           fields={{ id: g.id }}
@@ -93,6 +100,7 @@ export default async function GradesPage() {
                         >
                           <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                         </ConfirmDelete>
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>

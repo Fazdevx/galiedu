@@ -1,3 +1,5 @@
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { updateSchoolSettings } from "@/app/admin/_actions";
 import { getSchoolSettings } from "@/lib/settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
@@ -8,6 +10,8 @@ import { LogoField } from "@/components/admin/logo-field";
 export const metadata = { title: "Configuración" };
 
 export default async function SettingsPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const s = await getSchoolSettings();
 
   return (
@@ -20,6 +24,13 @@ export default async function SettingsPage() {
         </p>
       </div>
 
+      {!canManage ? (
+        <Card>
+          <CardContent className="p-6 text-sm text-gray-500">
+            Solo los administradores pueden modificar la configuración del colegio.
+          </CardContent>
+        </Card>
+      ) : (
       <Form action={updateSchoolSettings} submitLabel="Guardar configuración">
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -110,6 +121,7 @@ export default async function SettingsPage() {
           </div>
         </div>
       </Form>
+      )}
     </div>
   );
 }

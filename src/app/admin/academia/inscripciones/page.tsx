@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createAcademyEnrollment, updateAcademyEnrollmentStatus, deleteAcademyEnrollment } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Select } from "@/components/ui/input";
@@ -26,6 +28,8 @@ const STATUS_TONE: Record<AcademyEnrollmentStatus, "green" | "blue" | "red"> = {
 };
 
 export default async function AcademyEnrollmentsPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const [enrollments, students, courses] = await Promise.all([
     prisma.academyEnrollment.findMany({
       orderBy: { createdAt: "desc" },
@@ -44,7 +48,8 @@ export default async function AcademyEnrollmentsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[360px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Nueva inscripción</CardTitle>
@@ -82,6 +87,7 @@ export default async function AcademyEnrollmentsPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <DataList
           title="Listado"
@@ -110,6 +116,7 @@ export default async function AcademyEnrollmentsPage() {
                   <TableCell className="text-gray-500">{en.enrolledAt.toLocaleDateString("es-PE")}</TableCell>
                   <TableCell><Badge tone={STATUS_TONE[en.status]}>{STATUS_LABELS[en.status]}</Badge></TableCell>
                   <TableCell>
+                    {canManage ? (
                     <div className="flex items-center justify-end gap-2">
                       {en.status === "ACTIVE" ? (
                         <ServerActionButton
@@ -137,6 +144,7 @@ export default async function AcademyEnrollmentsPage() {
                         <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                       </ConfirmDelete>
                     </div>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ),

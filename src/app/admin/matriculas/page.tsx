@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createEnrollment, deleteEnrollment, updateEnrollmentStatus } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Select, Textarea } from "@/components/ui/input";
@@ -26,6 +28,8 @@ const STATUS_TONE: Record<string, "green" | "amber" | "red"> = {
 type SectionGroup = { label: string; sections: { id: string; name: string }[] };
 
 export default async function EnrollmentsPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const [enrollments, students, sections] = await Promise.all([
     prisma.enrollment.findMany({
       orderBy: { createdAt: "desc" },
@@ -63,7 +67,8 @@ export default async function EnrollmentsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[360px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Nueva matrícula</CardTitle>
@@ -108,6 +113,7 @@ export default async function EnrollmentsPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <DataList
           title="Listado"
@@ -133,6 +139,7 @@ export default async function EnrollmentsPage() {
                   <TableCell className="text-gray-500">{en.academicYear.year}</TableCell>
                   <TableCell><Badge tone={STATUS_TONE[en.status]}>{STATUS_LABELS[en.status]}</Badge></TableCell>
                   <TableCell>
+                    {canManage ? (
                     <div className="flex items-center justify-end gap-2">
                       <ServerActionButton
                         action={updateEnrollmentStatus}
@@ -150,6 +157,7 @@ export default async function EnrollmentsPage() {
                         <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                       </ConfirmDelete>
                     </div>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ),

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import {
   createAcademySchedule,
   deleteAcademySchedule,
@@ -58,6 +60,9 @@ export default async function AcademyCourseDetailPage({
 
   if (!course) notFound();
 
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -79,6 +84,7 @@ export default async function AcademyCourseDetailPage({
             <CardTitle>Grupos y horarios</CardTitle>
             <CardDescription>Configura los turnos de este curso.</CardDescription>
           </CardHeader>
+          {canManage ? (
           <Form action={createAcademySchedule} submitLabel="Agregar horario">
             <input type="hidden" name="courseId" value={course.id} />
             <CardContent className="flex flex-col gap-3">
@@ -110,6 +116,7 @@ export default async function AcademyCourseDetailPage({
               </div>
             </CardContent>
           </Form>
+          ) : null}
 
           <CardContent>
             <Table>
@@ -138,6 +145,7 @@ export default async function AcademyCourseDetailPage({
                     <TableCell className="text-gray-500">{s.teacherName ?? "—"}</TableCell>
                     <TableCell>
                       <div className="flex justify-end">
+                        {canManage ? (
                         <ConfirmDelete
                           action={deleteAcademySchedule}
                           fields={{ id: s.id }}
@@ -146,6 +154,7 @@ export default async function AcademyCourseDetailPage({
                         >
                           <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                         </ConfirmDelete>
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -189,6 +198,7 @@ export default async function AcademyCourseDetailPage({
                     <TableCell className="text-gray-500">{en.enrolledAt.toLocaleDateString("es-PE")}</TableCell>
                     <TableCell><Badge tone={ENR_STATUS_TONE[en.status]}>{ENR_STATUS_LABELS[en.status]}</Badge></TableCell>
                     <TableCell>
+                      {canManage ? (
                       <div className="flex items-center justify-end gap-2">
                         {en.status === "ACTIVE" ? (
                           <ServerActionButton
@@ -216,6 +226,7 @@ export default async function AcademyCourseDetailPage({
                           <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                         </ConfirmDelete>
                       </div>
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 ))}

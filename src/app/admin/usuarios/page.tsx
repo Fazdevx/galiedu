@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { createUser, updateUserStatus, deleteUser } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
@@ -23,6 +24,9 @@ const STATUS_TONE: Record<string, "green" | "red" | "amber"> = {
 };
 
 export default async function UsersPage() {
+  const session = await auth();
+  // La gestión de usuarios (crear, activar/desactivar, eliminar) es exclusiva del SUPER_ADMIN.
+  const canManage = session?.user?.role === "SUPER_ADMIN";
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
   });
@@ -36,46 +40,55 @@ export default async function UsersPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[360px_1fr] items-start">
-        <Card>
-          <CardHeader>
-            <CardTitle>Nuevo usuario</CardTitle>
-            <CardDescription>Se creará con acceso por correo y contraseña.</CardDescription>
-          </CardHeader>
-          <Form action={createUser} submitLabel="Crear usuario">
-            <CardContent className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="name">Nombre completo</Label>
-                <Input id="name" name="name" required placeholder="Ej. María Quispe" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email">Correo</Label>
-                <Input id="email" name="email" type="email" required placeholder="correo@colegio.edu.pe" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="role">Rol</Label>
-                <Select id="role" name="role" required defaultValue="PROFESOR">
-                  {roles.map((r) => (
-                    <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                  ))}
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="status">Estado</Label>
-                <Select id="status" name="status" defaultValue="ACTIVE">
-                  <option value="ACTIVE">Activo</option>
-                  <option value="INACTIVE">Inactivo</option>
-                  <option value="SUSPENDED">Suspendido</option>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="password">Contraseña inicial</Label>
-                <Input id="password" name="password" type="password" required minLength={8} placeholder="Mínimo 8 caracteres" />
-                <p className="text-xs text-gray-400">{PASSWORD_HINT}</p>
-              </div>
+      <div className={`grid gap-6 items-start ${canManage ? "lg:grid-cols-[360px_1fr]" : ""}`}>
+        {canManage ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Nuevo usuario</CardTitle>
+              <CardDescription>Se creará con acceso por correo y contraseña.</CardDescription>
+            </CardHeader>
+            <Form action={createUser} submitLabel="Crear usuario">
+              <CardContent className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="name">Nombre completo</Label>
+                  <Input id="name" name="name" required placeholder="Ej. María Quispe" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="email">Correo</Label>
+                  <Input id="email" name="email" type="email" required placeholder="correo@colegio.edu.pe" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="role">Rol</Label>
+                  <Select id="role" name="role" required defaultValue="PROFESOR">
+                    {roles.map((r) => (
+                      <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="status">Estado</Label>
+                  <Select id="status" name="status" defaultValue="ACTIVE">
+                    <option value="ACTIVE">Activo</option>
+                    <option value="INACTIVE">Inactivo</option>
+                    <option value="SUSPENDED">Suspendido</option>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="password">Contraseña inicial</Label>
+                  <Input id="password" name="password" type="password" required minLength={8} placeholder="Mínimo 8 caracteres" />
+                  <p className="text-xs text-gray-400">{PASSWORD_HINT}</p>
+                </div>
+              </CardContent>
+            </Form>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-sm text-gray-500">
+              La creación y gestión de usuarios es responsabilidad del super administrador. Si necesitas una cuenta,
+              solicítala en <span className="font-medium">Solicitudes</span>.
             </CardContent>
-          </Form>
-        </Card>
+          </Card>
+        )}
 
         <DataList
           title="Listado"
@@ -96,23 +109,25 @@ export default async function UsersPage() {
                   <TableCell><Badge tone="blue">{ROLE_LABELS[u.role]}</Badge></TableCell>
                   <TableCell><Badge tone={STATUS_TONE[u.status]}>{u.status}</Badge></TableCell>
                   <TableCell>
-                    <div className="flex items-center justify-end gap-2">
-                      <ServerActionButton
-                        action={updateUserStatus}
-                        fields={{ id: u.id, status: u.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" }}
-                        success={u.status === "ACTIVE" ? "Usuario desactivado" : "Usuario activado"}
-                      >
-                        {u.status === "ACTIVE" ? "Desactivar" : "Activar"}
-                      </ServerActionButton>
-                      <ConfirmDelete
-                        action={deleteUser}
-                        fields={{ id: u.id }}
-                        title="¿Eliminar usuario?"
-                        description={`Se eliminará la cuenta de ${u.name ?? u.email} y no podrá ingresar de nuevo.`}
-                      >
-                        <Button type="button" variant="destructive" size="sm">Eliminar</Button>
-                      </ConfirmDelete>
-                    </div>
+                    {canManage ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <ServerActionButton
+                          action={updateUserStatus}
+                          fields={{ id: u.id, status: u.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" }}
+                          success={u.status === "ACTIVE" ? "Usuario desactivado" : "Usuario activado"}
+                        >
+                          {u.status === "ACTIVE" ? "Desactivar" : "Activar"}
+                        </ServerActionButton>
+                        <ConfirmDelete
+                          action={deleteUser}
+                          fields={{ id: u.id }}
+                          title="¿Eliminar usuario?"
+                          description={`Se eliminará la cuenta de ${u.name ?? u.email} y no podrá ingresar de nuevo.`}
+                        >
+                          <Button type="button" variant="destructive" size="sm">Eliminar</Button>
+                        </ConfirmDelete>
+                      </div>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ),

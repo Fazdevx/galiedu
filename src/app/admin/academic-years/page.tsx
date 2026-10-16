@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createAcademicYear, deleteAcademicYear, setActiveAcademicYear } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +14,8 @@ import { formatDate } from "@/lib/date";
 export const metadata = { title: "Años académicos" };
 
 export default async function AcademicYearsPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const years = await prisma.academicYear.findMany({ orderBy: { year: "desc" } });
 
   return (
@@ -23,7 +27,8 @@ export default async function AcademicYearsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[320px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Nuevo año académico</CardTitle>
@@ -50,6 +55,7 @@ export default async function AcademicYearsPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <Card>
           <CardHeader>
@@ -85,6 +91,8 @@ export default async function AcademicYearsPage() {
                     <TableCell>{y.isActive ? <Badge tone="green">Activo</Badge> : <Badge tone="gray">Inactivo</Badge>}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
+                        {canManage ? (
+                        <>
                         {!y.isActive && (
                           <ServerActionButton
                             action={setActiveAcademicYear}
@@ -102,6 +110,8 @@ export default async function AcademicYearsPage() {
                         >
                           <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                         </ConfirmDelete>
+                        </>
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>

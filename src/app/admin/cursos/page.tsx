@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createCourse, deleteCourse } from "@/app/admin/_actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
@@ -19,6 +21,8 @@ const LEVEL_TYPE_LABELS: Record<LevelType, string> = {
 };
 
 export default async function CoursesPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const [courses, grades] = await Promise.all([
     prisma.course.findMany({
       orderBy: [{ grade: { level: { order: "asc" } } }, { grade: { order: "asc" } }, { order: "asc" }],
@@ -36,7 +40,8 @@ export default async function CoursesPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[320px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Nuevo curso</CardTitle>
@@ -63,6 +68,7 @@ export default async function CoursesPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <DataList
           title="Listado"
@@ -83,6 +89,7 @@ export default async function CoursesPage() {
                   <TableCell className="text-gray-500">{c.order}</TableCell>
                   <TableCell>
                     <div className="flex justify-end">
+                      {canManage ? (
                       <ConfirmDelete
                         action={deleteCourse}
                         fields={{ id: c.id }}
@@ -91,6 +98,7 @@ export default async function CoursesPage() {
                       >
                         <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                       </ConfirmDelete>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>

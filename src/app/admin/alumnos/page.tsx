@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createStudent, deleteStudent } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
@@ -29,6 +31,8 @@ function currentEnrollment(s: {
 }
 
 export default async function StudentsPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const students = await prisma.student.findMany({
     orderBy: [{ lastName: "asc" }],
     include: {
@@ -50,68 +54,70 @@ export default async function StudentsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Nuevo alumno</CardTitle>
-            <CardDescription>Datos personales y del apoderado.</CardDescription>
-          </CardHeader>
-          <Form action={createStudent} submitLabel="Registrar alumno">
-            <CardContent className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="firstName">Nombres</Label>
-                <Input id="firstName" name="firstName" required placeholder="Ej. Ana Lucía" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="lastName">Apellidos</Label>
-                <Input id="lastName" name="lastName" required placeholder="Ej. Huamán Torres" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="document">DNI / Doc.</Label>
-                <Input id="document" name="document" maxLength={20} placeholder="Ej. 78451236" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[360px_1fr]" : ""}`}>
+        {canManage ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Nuevo alumno</CardTitle>
+              <CardDescription>Datos personales y del apoderado.</CardDescription>
+            </CardHeader>
+            <Form action={createStudent} submitLabel="Registrar alumno">
+              <CardContent className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="birthDate">Nacimiento</Label>
-                  <Input id="birthDate" name="birthDate" type="date" />
+                  <Label htmlFor="firstName">Nombres</Label>
+                  <Input id="firstName" name="firstName" required placeholder="Ej. Ana Lucía" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="gender">Sexo</Label>
-                  <Select id="gender" name="gender">
-                    <option value="">—</option>
-                    <option value="MASCULINO">Masculino</option>
-                    <option value="FEMENINO">Femenino</option>
+                  <Label htmlFor="lastName">Apellidos</Label>
+                  <Input id="lastName" name="lastName" required placeholder="Ej. Huamán Torres" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="document">DNI / Doc.</Label>
+                  <Input id="document" name="document" maxLength={20} placeholder="Ej. 78451236" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="birthDate">Nacimiento</Label>
+                    <Input id="birthDate" name="birthDate" type="date" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="gender">Sexo</Label>
+                    <Select id="gender" name="gender">
+                      <option value="">—</option>
+                      <option value="MASCULINO">Masculino</option>
+                      <option value="FEMENINO">Femenino</option>
+                    </Select>
+                  </div>
+                </div>
+                <div className="border-t border-gray-100 pt-3">
+                  <p className="mb-2 text-xs font-medium text-gray-500">Apoderado</p>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="guardianName">Nombre</Label>
+                      <Input id="guardianName" name="guardianName" placeholder="Ej. María Torres" />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="guardianPhone">Teléfono</Label>
+                      <Input id="guardianPhone" name="guardianPhone" placeholder="Ej. 987 654 321" />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="guardianEmail">Correo</Label>
+                      <Input id="guardianEmail" name="guardianEmail" type="email" placeholder="correo@apoderado.pe" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="status">Estado</Label>
+                  <Select id="status" name="status" defaultValue="ACTIVE">
+                    <option value="ACTIVE">Activo</option>
+                    <option value="INACTIVE">Inactivo</option>
+                    <option value="SUSPENDED">Suspendido</option>
                   </Select>
                 </div>
-              </div>
-              <div className="border-t border-gray-100 pt-3">
-                <p className="mb-2 text-xs font-medium text-gray-500">Apoderado</p>
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="guardianName">Nombre</Label>
-                    <Input id="guardianName" name="guardianName" placeholder="Ej. María Torres" />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="guardianPhone">Teléfono</Label>
-                    <Input id="guardianPhone" name="guardianPhone" placeholder="Ej. 987 654 321" />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="guardianEmail">Correo</Label>
-                    <Input id="guardianEmail" name="guardianEmail" type="email" placeholder="correo@apoderado.pe" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="status">Estado</Label>
-                <Select id="status" name="status" defaultValue="ACTIVE">
-                  <option value="ACTIVE">Activo</option>
-                  <option value="INACTIVE">Inactivo</option>
-                  <option value="SUSPENDED">Suspendido</option>
-                </Select>
-              </div>
-            </CardContent>
-          </Form>
-        </Card>
+              </CardContent>
+            </Form>
+          </Card>
+        ) : null}
 
         <DataList
           title="Listado"
@@ -165,14 +171,16 @@ export default async function StudentsPage() {
                       <Link href={`/admin/alumnos/${s.id}`}>
                         <Button type="button" variant="outline" size="sm">Ver ficha</Button>
                       </Link>
-                      <ConfirmDelete
-                        action={deleteStudent}
-                        fields={{ id: s.id }}
-                        title="¿Eliminar alumno?"
-                        description={`Se eliminará a ${fullName(s)} con sus matrículas, notas y pagos asociados.`}
-                      >
-                        <Button type="button" variant="destructive" size="sm">Eliminar</Button>
-                      </ConfirmDelete>
+                      {canManage ? (
+                        <ConfirmDelete
+                          action={deleteStudent}
+                          fields={{ id: s.id }}
+                          title="¿Eliminar alumno?"
+                          description={`Se eliminará a ${fullName(s)} con sus matrículas, notas y pagos asociados.`}
+                        >
+                          <Button type="button" variant="destructive" size="sm">Eliminar</Button>
+                        </ConfirmDelete>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createLevel, deleteLevel } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
@@ -25,6 +27,8 @@ const LEVEL_TYPE_TONES: Record<LevelType, "blue" | "green" | "amber" | "gray"> =
 };
 
 export default async function LevelsPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const levels = await prisma.level.findMany({
     orderBy: { order: "asc" },
     include: { grades: true },
@@ -39,7 +43,8 @@ export default async function LevelsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[320px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Nuevo nivel</CardTitle>
@@ -66,6 +71,7 @@ export default async function LevelsPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <Card>
           <CardHeader>
@@ -92,6 +98,7 @@ export default async function LevelsPage() {
                     <TableCell className="text-gray-500">{l.order}</TableCell>
                     <TableCell>
                       <div className="flex justify-end">
+                        {canManage ? (
                         <ConfirmDelete
                           action={deleteLevel}
                           fields={{ id: l.id }}
@@ -100,6 +107,7 @@ export default async function LevelsPage() {
                         >
                           <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                         </ConfirmDelete>
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>

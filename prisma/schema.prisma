@@ -30,6 +30,12 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum UserRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum LevelType {
   INICIAL
   PRIMARIA
@@ -110,6 +116,8 @@ model User {
   student  Student? @relation("StudentUser")
   guardianOf Student[] @relation("StudentGuardian")
   passwordResetTokens PasswordResetToken[]
+  requestsMade  UserCreateRequest[] @relation("UserRequestRequester")
+  requestsResolved UserCreateRequest[] @relation("UserRequestResolver")
 
   @@index([role])
   @@map("users")
@@ -509,4 +517,28 @@ model AuditLog {
   @@index([createdAt])
   @@index([entity, entityId])
   @@map("audit_logs")
+}
+
+// Solicitud de creación de usuario enviada por el director; la aprueba el SUPER_ADMIN.
+model UserCreateRequest {
+  id           String            @id @default(cuid())
+  name         String
+  email        String
+  role         Role
+  notes        String?
+  status       UserRequestStatus @default(PENDING)
+  rejectReason String?
+  resolvedAt   DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  requestedById String
+  resolvedById  String?
+
+  requestedBy User  @relation("UserRequestRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+  resolvedBy  User? @relation("UserRequestResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([requestedById])
+  @@map("user_create_requests")
 }

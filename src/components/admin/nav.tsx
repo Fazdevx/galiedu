@@ -17,12 +17,15 @@ import {
   NotebookPen,
   ReceiptText,
   School,
+  Send,
   Settings,
   UserPlus,
   Users,
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NAV_ACCESS, navAccessAllowed } from "@/components/admin/nav-config";
+import { usePermissions } from "@/components/admin/permissions";
 
 const groups: { label: string; items: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
   {
@@ -33,6 +36,7 @@ const groups: { label: string; items: { href: string; label: string; icon: React
     label: "Usuarios y estudiantes",
     items: [
       { href: "/admin/usuarios", label: "Usuarios", icon: Users },
+      { href: "/admin/solicitudes", label: "Solicitudes", icon: Send },
       { href: "/admin/alumnos", label: "Alumnos", icon: GraduationCap },
       { href: "/admin/matriculas", label: "Matrículas", icon: ClipboardList },
     ],
@@ -80,10 +84,21 @@ const groups: { label: string; items: { href: string; label: string; icon: React
 
 export function AdminNav() {
   const pathname = usePathname();
+  const { role } = usePermissions();
+
+  const visibleGroups = groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        const access = NAV_ACCESS[item.href] ?? "all";
+        return role ? navAccessAllowed(access, role) : false;
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <nav className="flex flex-col gap-6">
-      {groups.map((group) => (
+      {visibleGroups.map((group) => (
         <div key={group.label} className="flex flex-col gap-0.5">
           <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
             {group.label}

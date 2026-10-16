@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { updateStudent } from "@/app/admin/_actions";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
@@ -41,6 +43,9 @@ export default async function StudentDetailPage({
 
   if (!student) notFound();
 
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
+
   const guardianUsers = await prisma.user.findMany({
     where: { role: "APODERADO" },
     orderBy: { name: "asc" },
@@ -66,7 +71,8 @@ export default async function StudentDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[420px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Editar ficha</CardTitle>
@@ -140,6 +146,7 @@ export default async function StudentDetailPage({
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <div className="flex flex-col gap-6">
           <Card>

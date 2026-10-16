@@ -1,10 +1,11 @@
 "use client";
 
 import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
+import type { Role } from "@/generated/prisma/client";
 
-type Permissions = { isAdmin: boolean };
+type Permissions = { isAdmin: boolean; role: Role | null };
 
-const PermissionsContext = createContext<Permissions>({ isAdmin: true });
+const PermissionsContext = createContext<Permissions>({ isAdmin: true, role: null });
 
 const noopSubscribe = () => () => {};
 
@@ -26,6 +27,14 @@ export function useCanManage() {
   return !mounted || isAdmin;
 }
 
-export function PermissionsProvider({ isAdmin, children }: { isAdmin: boolean; children: ReactNode }) {
-  return <PermissionsContext.Provider value={{ isAdmin }}>{children}</PermissionsContext.Provider>;
+export function PermissionsProvider({
+  isAdmin,
+  role,
+  children,
+}: {
+  isAdmin: boolean;
+  role: Role;
+  children: ReactNode;
+}) {
+  return <PermissionsContext.Provider value={{ isAdmin, role }}>{children}</PermissionsContext.Provider>;
 }

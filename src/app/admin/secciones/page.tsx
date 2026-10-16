@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/roles";
 import { createSection, deleteSection } from "@/app/admin/_actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Label } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
@@ -11,6 +13,8 @@ import { DataList, type DataListRow } from "@/components/ui/data-list";
 export const metadata = { title: "Secciones" };
 
 export default async function SectionsPage() {
+  const session = await auth();
+  const canManage = isAdmin(session?.user?.role);
   const [sections, grades, academicYears] = await Promise.all([
     prisma.section.findMany({
       orderBy: [{ createdAt: "asc" }],
@@ -29,7 +33,8 @@ export default async function SectionsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className={`grid gap-6 ${canManage ? "lg:grid-cols-[320px_1fr]" : ""}`}>
+        {canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>Nueva sección</CardTitle>
@@ -64,6 +69,7 @@ export default async function SectionsPage() {
             </CardContent>
           </Form>
         </Card>
+        ) : null}
 
         <DataList
           title="Listado"
@@ -85,6 +91,7 @@ export default async function SectionsPage() {
                   <TableCell className="text-gray-700">{s.capacity}</TableCell>
                   <TableCell>
                     <div className="flex justify-end">
+                      {canManage ? (
                       <ConfirmDelete
                         action={deleteSection}
                         fields={{ id: s.id }}
@@ -93,6 +100,7 @@ export default async function SectionsPage() {
                       >
                         <Button type="button" variant="destructive" size="sm">Eliminar</Button>
                       </ConfirmDelete>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>

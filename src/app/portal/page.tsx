@@ -20,7 +20,7 @@ export default async function PortalHomePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
           {user.role === "ALUMNO" ? "Mi información" : "Mis hijos"}
         </h1>
         <p className="text-sm text-gray-500">
@@ -42,10 +42,13 @@ export default async function PortalHomePage() {
             const enrollment = s.enrollments[0];
             const section = enrollment?.section;
             return (
-              <Card key={s.id} className="transition-all hover:-translate-y-0.5 hover:shadow-md">
+              <Card
+                key={s.id}
+                className="transition-all hover:-translate-y-0.5 hover:border-primary-soft-strong hover:shadow-raised"
+              >
                 <CardContent className="flex flex-col gap-4 p-5">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary ring-1 ring-inset ring-primary-soft-strong">
                       {initials(s.firstName, s.lastName)}
                     </div>
                     <div className="min-w-0">

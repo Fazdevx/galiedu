@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/card";
@@ -86,7 +86,7 @@ export function LoginForm() {
             <button
               type="button"
               onClick={() => setShow((v) => !v)}
-              className="absolute right-1 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded text-gray-400 hover:text-gray-600"
+              className="absolute right-1 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -95,7 +95,11 @@ export function LoginForm() {
         </div>
 
         {error ? (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          <p
+            className="flex items-start gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-200/80"
+            role="alert"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {error}
           </p>
         ) : null}
@@ -116,17 +120,17 @@ export function LoginForm() {
       </form>
 
       {SHOW_DEMO_ACCOUNTS ? (
-        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-3">
+        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50/80 p-3">
           <button
             type="button"
             onClick={() => setShowDemo((v) => !v)}
-            className="flex w-full items-center justify-between text-xs font-medium text-gray-500 hover:text-gray-700"
+            className="flex w-full items-center justify-between text-xs font-medium text-gray-500 transition-colors hover:text-gray-700"
           >
             Cuentas de demostración
             <span className="text-gray-400">{showDemo ? "Ocultar" : "Mostrar"}</span>
           </button>
           {showDemo ? (
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
               {DEMO_ACCOUNTS.map((a) => (
                 <button
                   key={a.email}
@@ -135,7 +139,7 @@ export function LoginForm() {
                     setEmail(a.email);
                     setPassword(a.password);
                   }}
-                  className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors hover:border-primary hover:text-primary"
+                  className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-soft transition-all hover:border-primary hover:bg-primary-soft hover:text-primary-strong active:scale-[0.97]"
                 >
                   {a.label}
                 </button>

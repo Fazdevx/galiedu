@@ -29,7 +29,7 @@ export async function OnboardingChecklist() {
   const progress = Math.round((done / steps.length) * 100);
 
   return (
-    <Card className="border-primary-soft-strong bg-gradient-to-br from-white to-primary-soft/40">
+    <Card className="border-primary-soft-strong bg-gradient-to-br from-white to-primary-soft/40 shadow-card">
       <CardHeader className="flex-row items-start justify-between gap-3">
         <div>
           <CardTitle className="flex items-center gap-2">
@@ -42,8 +42,11 @@ export async function OnboardingChecklist() {
         </span>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <div className="h-2 w-full overflow-hidden rounded-full bg-white/70">
-          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+        <div className="h-2 w-full overflow-hidden rounded-full bg-white/70 ring-1 ring-inset ring-primary-soft-strong/50">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary to-primary-strong transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
         </div>
         <ul className="grid gap-1 sm:grid-cols-2">
           {steps.map((s) => (

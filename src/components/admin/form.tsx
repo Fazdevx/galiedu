@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import type { FormState } from "@/app/admin/_actions";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/components/toast";
 import { useCanManage } from "@/components/admin/permissions";
 
@@ -55,14 +56,14 @@ export function Form({
         {children}
 
         {!canManage ? (
-          <p className="mx-5 mb-2 rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-500">
+          <p className="mx-5 mb-2 rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-500 ring-1 ring-inset ring-gray-200">
             Solo los administradores pueden registrar o modificar esta sección.
           </p>
         ) : null}
 
         {state?.error ? (
           <p
-            className="mx-5 mb-2 flex items-start gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"
+            className="mx-5 mb-2 flex items-start gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-200/80"
             role="alert"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -72,7 +73,7 @@ export function Form({
 
         {canManage ? (
           <div className="p-5 pt-3">
-            <Button type="submit" className={submitClassName} disabled={pending}>
+            <Button type="submit" className={cn("w-full sm:w-auto", submitClassName)} disabled={pending}>
               {pending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" /> Guardando…

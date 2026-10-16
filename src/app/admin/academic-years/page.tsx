@@ -17,7 +17,7 @@ export default async function AcademicYearsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Años académicos</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Años académicos</h1>
         <p className="text-sm text-gray-500">
           Organiza las campañas por año. Una promoción de Inicial, Primaria, Secundaria y Academia se apoya cada año en este registro.
         </p>

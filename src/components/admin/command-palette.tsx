@@ -134,12 +134,12 @@ export function CommandPalette() {
 
   return createPortal(
     <div className="animate-fade-in fixed inset-0 z-[95] flex items-start justify-center p-4 pt-[12vh]">
-      <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} aria-hidden="true" />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Búsqueda global"
-        className="animate-pop-in relative w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl"
+        className="animate-pop-in relative w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-raised"
       >
         <div className="flex items-center gap-2 border-b border-gray-100 px-4">
           <Search className="h-4 w-4 shrink-0 text-gray-400" />
@@ -178,10 +178,15 @@ export function CommandPalette() {
                   onClick={() => go(r.href)}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors",
-                    i === active ? "bg-primary-soft" : "hover:bg-gray-50",
+                    i === active ? "bg-primary-soft text-primary-strong" : "hover:bg-gray-50",
                   )}
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+                  <span
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                      i === active ? "bg-white text-primary" : "bg-gray-100 text-gray-500",
+                    )}
+                  >
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">

@@ -3,12 +3,9 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonSize, type ButtonVariant } from "@/components/ui/button";
 import { useToast } from "@/components/toast";
 import { useCanManage } from "@/components/admin/permissions";
-
-type Variant = "default" | "secondary" | "outline" | "ghost" | "destructive";
-type Size = "default" | "sm" | "lg" | "icon";
 
 export function ServerActionButton({
   action,
@@ -23,8 +20,8 @@ export function ServerActionButton({
   fields: Record<string, string>;
   children: React.ReactNode;
   success?: string;
-  variant?: Variant;
-  size?: Size;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   className?: string;
 }) {
   const [pending, startTransition] = useTransition();

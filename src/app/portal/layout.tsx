@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { auth } from "@/auth";
 import { signOutAction } from "@/components/admin/actions";
 import { PortalNav } from "@/components/portal/nav";
@@ -55,8 +56,14 @@ export default async function PortalLayout({ children }: { children: React.React
 
   const signOut = (
     <form action={signOutAction}>
-      <Button type="submit" variant="ghost" size="sm" className="text-gray-300 hover:bg-gray-800 hover:text-white">
-        Salir
+      <Button
+        type="submit"
+        variant="ghost"
+        size="sm"
+        className="shrink-0 text-gray-400 hover:bg-white/10 hover:text-white"
+        aria-label="Cerrar sesión"
+      >
+        <LogOut className="h-4 w-4" /> Salir
       </Button>
     </form>
   );

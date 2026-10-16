@@ -14,8 +14,12 @@ export default async function RestablecerPage({
   const { token } = await params;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
-      <Card className="w-full max-w-sm animate-slide-up">
+    <main className="relative flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-primary-soft/50 to-transparent"
+      />
+      <Card className="relative w-full max-w-sm animate-slide-up border-gray-200/80 shadow-raised">
         <CardHeader>
           <CardTitle>Nueva contraseña</CardTitle>
           <CardDescription>Elige una contraseña segura para tu cuenta.</CardDescription>

@@ -15,7 +15,7 @@ export default async function BoletinesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Boletines de notas</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Boletines de notas</h1>
         <p className="text-sm text-gray-500">
           Genera el boletín de notas por alumno: calificaciones por período, promedio y asistencia.
         </p>

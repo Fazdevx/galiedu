@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { CalendarRange, LogOut } from "lucide-react";
 import { auth } from "@/auth";
 import { AdminNav } from "@/components/admin/nav";
 import { AppChrome, type BreadcrumbEntry } from "@/components/admin/chrome";
@@ -69,8 +70,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const signOut = (
     <form action={signOutAction}>
-      <Button type="submit" variant="ghost" size="sm" className="text-gray-300 hover:bg-gray-800 hover:text-white">
-        Salir
+      <Button
+        type="submit"
+        variant="ghost"
+        size="sm"
+        className="shrink-0 text-gray-400 hover:bg-white/10 hover:text-white"
+        aria-label="Cerrar sesión"
+      >
+        <LogOut className="h-4 w-4" /> Salir
       </Button>
     </form>
   );
@@ -89,7 +96,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <>
             <SearchTrigger />
             {activeYear ? (
-              <span className="mr-1 hidden items-center rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary sm:inline-flex">
+              <span className="mr-1 hidden items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary-soft-strong sm:inline-flex">
+                <CalendarRange className="h-3.5 w-3.5" />
                 {activeYear.name}
               </span>
             ) : null}

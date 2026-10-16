@@ -20,7 +20,9 @@ export function PortalNav({ items }: { items: { href: string; label: string }[] 
             aria-current={active ? "page" : undefined}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-              active ? "bg-primary text-white shadow-sm" : "text-gray-300 hover:bg-gray-800 hover:text-white",
+              active
+                ? "bg-primary text-white shadow-sm shadow-primary/25"
+                : "text-gray-400 hover:bg-white/5 hover:text-white",
             )}
           >
             <Icon className="h-4 w-4 shrink-0 opacity-80" />

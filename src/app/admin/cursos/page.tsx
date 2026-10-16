@@ -30,7 +30,7 @@ export default async function CoursesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Cursos</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Cursos</h1>
         <p className="text-sm text-gray-500">
           Asignaturas por grado. Las notas se registran sobre estos cursos.
         </p>

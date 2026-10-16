@@ -12,7 +12,7 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-6">
-      <div className="flex max-w-md flex-col items-center gap-3 rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+      <div className="flex max-w-md flex-col items-center gap-3 rounded-2xl border border-gray-200/80 bg-white p-8 text-center shadow-raised">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
           <AlertTriangle className="h-6 w-6" />
         </div>

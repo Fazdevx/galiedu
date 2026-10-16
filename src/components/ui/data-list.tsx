@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, Search, SearchX } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search, SearchX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -90,7 +90,7 @@ export function DataList({
           )}
           <div className="flex w-full items-center gap-2 sm:w-auto">
             {searchable && rows.length > 0 ? (
-              <div className="relative min-w-0 flex-1 sm:w-64">
+              <div className="relative min-w-0 flex-1 sm:w-72">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   value={query}
@@ -99,6 +99,11 @@ export function DataList({
                   className="pl-9"
                   aria-label={placeholder}
                 />
+                {q ? (
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-medium text-gray-400">
+                    {total} resultado{total === 1 ? "" : "s"}
+                  </span>
+                ) : null}
               </div>
             ) : null}
             {exportOptions ? (
@@ -116,14 +121,14 @@ export function DataList({
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-gray-200/80 bg-white shadow-card">
         <Table>
           {header}
           <TableBody>
             {none ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={emptyColSpan}>
-                  <div className="flex flex-col items-center justify-center gap-1 py-10 text-center">
+                  <div className="flex flex-col items-center justify-center gap-1 py-12 text-center">
                     {q ? (
                       <SearchX className="h-8 w-8 text-gray-300" />
                     ) : (
@@ -148,17 +153,22 @@ export function DataList({
       {enabled && totalPages > 1 ? (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-gray-500">
-            Mostrando {from}–{to} de {total}
+            Mostrando <span className="font-medium text-gray-700">{from}–{to}</span> de{" "}
+            <span className="font-medium text-gray-700">{total}</span>
           </p>
           <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400">
+              Página <span className="font-medium text-gray-600">{safePage}</span> de {totalPages}
+            </span>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={safePage <= 1}
+              aria-label="Página anterior"
             >
-              Anterior
+              <ChevronLeft className="h-4 w-4" /> Anterior
             </Button>
             <Button
               type="button"
@@ -166,8 +176,9 @@ export function DataList({
               size="sm"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={safePage >= totalPages}
+              aria-label="Página siguiente"
             >
-              Siguiente
+              Siguiente <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>

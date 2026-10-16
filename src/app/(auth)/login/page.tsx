@@ -32,8 +32,16 @@ export default async function LoginPage() {
         className="relative hidden flex-col justify-between overflow-hidden p-10 text-white lg:flex"
         style={{ backgroundColor: school.primaryColor }}
       >
-        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10" />
-        <div className="absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-black/10" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+            backgroundSize: "22px 22px",
+          }}
+        />
+        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-black/10 blur-2xl" />
         <div className="relative flex items-center gap-3">
           {school.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -56,7 +64,7 @@ export default async function LoginPage() {
               const Icon = f.icon;
               return (
                 <li key={f.text} className="flex items-center gap-3 text-sm text-white/90">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 backdrop-blur">
                     <Icon className="h-4 w-4" />
                   </span>
                   {f.text}
@@ -69,21 +77,25 @@ export default async function LoginPage() {
         <p className="relative text-xs text-white/60">© {new Date().getFullYear()} {school.name}</p>
       </section>
 
-      <section className="flex flex-col items-center justify-center px-4 py-12">
-        <div className="mb-4 w-full max-w-sm">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800">
+      <section className="relative flex flex-col items-center justify-center px-4 py-12">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary-soft/50 to-transparent"
+        />
+        <div className="relative mb-4 w-full max-w-sm">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-800">
             <ArrowLeft className="h-4 w-4" /> Volver al inicio
           </Link>
         </div>
-        <Card className="w-full max-w-sm animate-slide-up">
+        <Card className="relative w-full max-w-sm animate-slide-up border-gray-200/80 shadow-raised">
           <CardHeader className="items-center text-center">
             <div
-              className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl text-xl font-bold text-white lg:hidden"
+              className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl text-xl font-bold text-white shadow-soft lg:hidden"
               style={{ backgroundColor: school.primaryColor }}
             >
               {school.shortName.charAt(0)}
             </div>
-            <CardTitle>Bienvenido</CardTitle>
+            <CardTitle className="text-lg">Bienvenido</CardTitle>
             <CardDescription>Ingresa con tus credenciales del colegio</CardDescription>
           </CardHeader>
           <CardContent>

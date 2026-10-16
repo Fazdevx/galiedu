@@ -129,7 +129,7 @@ export default async function AttendancePage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Asistencia</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Asistencia</h1>
         <p className="text-sm text-gray-500">
           Registro diario por sección: presente, falta, tardanza o justificado.
         </p>

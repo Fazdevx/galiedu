@@ -33,7 +33,7 @@ export default async function LevelsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Niveles</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Niveles</h1>
         <p className="text-sm text-gray-500">
           Inicial, Primaria, Secundaria y la Academia. Todo personalizable desde aquí.
         </p>

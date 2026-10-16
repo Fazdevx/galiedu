@@ -82,10 +82,12 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-5">
+    <nav className="flex flex-col gap-6">
       {groups.map((group) => (
-        <div key={group.label} className="flex flex-col gap-1">
-          <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500">{group.label}</p>
+        <div key={group.label} className="flex flex-col gap-0.5">
+          <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+            {group.label}
+          </p>
           {group.items.map((item) => {
             const active = item.href === "/admin"
               ? pathname === "/admin"
@@ -97,13 +99,18 @@ export function AdminNav() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white",
+                    ? "bg-primary text-white shadow-sm shadow-primary/25"
+                    : "text-gray-400 hover:bg-white/5 hover:text-white",
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0 opacity-80" />
+                <Icon
+                  className={cn(
+                    "h-4 w-4 shrink-0 transition-opacity",
+                    active ? "opacity-100" : "opacity-70 group-hover:opacity-100",
+                  )}
+                />
                 {item.label}
               </Link>
             );

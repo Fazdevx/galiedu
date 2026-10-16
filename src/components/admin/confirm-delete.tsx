@@ -89,11 +89,11 @@ export function ConfirmDelete({
 
   const dialog = (
     <div className="animate-fade-in fixed inset-0 z-[90] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={close} aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={close} aria-hidden="true" />
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="animate-pop-in relative w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-5 shadow-xl outline-none"
+        className="animate-pop-in relative w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-5 shadow-raised outline-none"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={`${id}-title`}
@@ -135,7 +135,7 @@ export function ConfirmDelete({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={close} disabled={pending}>
+            <Button type="button" variant="outline" onClick={close} disabled={pending}>
               {cancelLabel}
             </Button>
             <Button type="submit" variant="destructive" disabled={pending}>

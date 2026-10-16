@@ -30,7 +30,7 @@ export default async function UsersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Usuarios</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Usuarios</h1>
         <p className="text-sm text-gray-500">
           Cuentas del personal, alumnos y apoderados con roles y permisos.
         </p>

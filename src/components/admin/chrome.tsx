@@ -7,6 +7,12 @@ import { ChevronRight, Menu, X } from "lucide-react";
 
 export type BreadcrumbEntry = { area: string; page: string };
 
+function initialsOf(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "U";
+  return `${parts[0].charAt(0)}${parts[1]?.charAt(0) ?? ""}`.toUpperCase();
+}
+
 export function AppChrome({
   baseLabel,
   links,
@@ -50,6 +56,24 @@ export function AppChrome({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
+  const userFooter = (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span
+          aria-hidden="true"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white"
+        >
+          {initialsOf(userName)}
+        </span>
+        <div className="min-w-0 leading-tight">
+          <p className="truncate text-sm font-medium text-gray-100">{userName}</p>
+          <p className="truncate text-xs text-gray-400">{userRole}</p>
+        </div>
+      </div>
+      {signOut}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 lg:flex">
       <a
@@ -58,38 +82,33 @@ export function AppChrome({
       >
         Saltar al contenido
       </a>
-      <aside className="hidden h-screen w-64 shrink-0 flex-col bg-gray-900 text-gray-100 lg:sticky lg:top-0 lg:flex">
-        {brand}
-        <nav className="flex-1 overflow-y-auto px-3 py-3" aria-label="Navegación principal">
+      <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-white/5 bg-gradient-to-b from-gray-900 to-gray-950 text-gray-100 lg:sticky lg:top-0 lg:flex">
+        <div className="border-b border-white/5">{brand}</div>
+        <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Navegación principal">
           {nav}
         </nav>
-        <div className="border-t border-gray-800 px-5 py-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{userName}</p>
-              <p className="text-xs text-gray-400">{userRole}</p>
-            </div>
-            {signOut}
-          </div>
-        </div>
+        <div className="border-t border-white/5 px-4 py-4">{userFooter}</div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-1 border-b border-gray-200 bg-white/90 px-4 backdrop-blur">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-1 border-b border-gray-200/80 bg-white/85 px-4 backdrop-blur-md">
           <button
             onClick={() => setOpen(true)}
-            className="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 lg:hidden"
+            className="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 shadow-soft transition-colors hover:bg-gray-50 lg:hidden"
             aria-label="Abrir menú"
           >
             <Menu className="h-5 w-5" />
           </button>
 
           <nav className="flex min-w-0 items-center text-sm" aria-label="Ruta actual">
-            <span className="font-medium text-gray-500">{baseLabel}</span>
+            <span className="font-medium text-gray-400">{baseLabel}</span>
             {crumbs ? (
               <>
                 <ChevronRight className="mx-1 h-4 w-4 shrink-0 text-gray-300" />
-                <Link href={crumbs.href} className="truncate font-semibold text-gray-900 hover:text-primary">
+                <Link
+                  href={crumbs.href}
+                  className="truncate font-semibold text-gray-900 transition-colors hover:text-primary"
+                >
                   {crumbs.label}
                 </Link>
               </>
@@ -99,42 +118,41 @@ export function AppChrome({
           {actions ? <div className="ml-auto flex items-center gap-2">{actions}</div> : null}
         </header>
 
-        <main
-          id="main-content"
-          tabIndex={-1}
-          className="focus:outline-none flex-1 p-4 md:p-6"
-        >
-          {children}
+        <main id="main-content" tabIndex={-1} className="focus:outline-none flex-1 p-4 md:p-6">
+          <div key={pathname} className="animate-page-in">
+            {children}
+          </div>
         </main>
       </div>
 
       {open ? (
         <>
           <div
-            className="animate-fade-in fixed inset-0 z-40 bg-black/40 lg:hidden"
+            className="animate-fade-in fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
           <div
             ref={drawerRef}
-            className="animate-drawer-in fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-gray-900 text-gray-100 lg:hidden"
+            className="animate-drawer-in fixed inset-y-0 left-0 z-50 flex w-72 flex-col rounded-r-2xl border-r border-white/5 bg-gradient-to-b from-gray-900 to-gray-950 text-gray-100 shadow-2xl lg:hidden"
             role="dialog"
             aria-modal="true"
             aria-label="Menú de navegación"
           >
-            <div className="flex items-center justify-between pr-2">
+            <div className="flex items-center justify-between border-b border-white/5 pr-2">
               {brand}
               <button
                 onClick={() => setOpen(false)}
-                className="mr-2 inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-400 hover:bg-gray-800 hover:text-white"
+                className="mr-2 inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
                 aria-label="Cerrar menú"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <nav className="flex-1 overflow-y-auto px-3 py-3" aria-label="Navegación principal">
+            <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Navegación principal">
               {nav}
             </nav>
+            <div className="border-t border-white/5 px-4 py-4">{userFooter}</div>
           </div>
         </>
       ) : null}

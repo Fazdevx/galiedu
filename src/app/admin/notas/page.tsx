@@ -90,7 +90,7 @@ export default async function GradesPage({
     <div className="flex flex-col gap-6">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold text-gray-900">Notas</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Notas</h1>
           <Badge tone="blue">{TERM_LABELS[termRaw]}</Badge>
         </div>
         <p className="text-sm text-gray-500">

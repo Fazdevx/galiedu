@@ -95,7 +95,7 @@ export default async function PortalStudentPage({
         <div className="flex items-center gap-2">
           <Link href="/portal" className="text-sm text-gray-400 hover:text-gray-600">← Inicio</Link>
           <span className="text-gray-300">/</span>
-          <h1 className="text-2xl font-semibold text-gray-900">
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
             {student.firstName} {student.lastName}
           </h1>
         </div>

@@ -64,7 +64,7 @@ export default async function AcademyCourseDetailPage({
         <div className="flex items-center gap-2">
           <Link href="/admin/academia/cursos" className="text-sm text-gray-400 hover:text-gray-600">← Cursos de academia</Link>
           <span className="text-gray-300">/</span>
-          <h1 className="text-2xl font-semibold text-gray-900">{course.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{course.name}</h1>
         </div>
         <p className="text-sm text-gray-500">
           {course.description ?? "Sin descripción"} ·{" "}

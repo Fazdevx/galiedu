@@ -1,5 +1,12 @@
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-gray-200/70", className)} aria-hidden="true" />;
+export function Skeleton({ className, style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <div
+      className={cn("skeleton-shimmer rounded-md", className)}
+      style={style}
+      aria-hidden="true"
+    />
+  );
 }

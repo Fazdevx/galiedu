@@ -13,7 +13,7 @@ export default async function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Configuración del colegio</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Configuración del colegio</h1>
         <p className="text-sm text-gray-500">
           Estos datos aparecen en el panel y en los documentos PDF (boleta de pago, boletín de notas y
           constancia de matrícula).

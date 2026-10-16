@@ -26,7 +26,7 @@ export default async function GradesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Grados</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Grados</h1>
         <p className="text-sm text-gray-500">
           Grados o ciclos dentro de cada nivel. Ej. 1° de primaria, 3° de secundaria, curso de academia.
         </p>

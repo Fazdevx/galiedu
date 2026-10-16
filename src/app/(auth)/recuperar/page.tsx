@@ -10,14 +10,18 @@ export const metadata: Metadata = {
 
 export default function RecuperarPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
-      <div className="w-full max-w-sm">
+    <main className="relative flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-primary-soft/50 to-transparent"
+      />
+      <div className="relative w-full max-w-sm">
         <div className="mb-4">
-          <Link href="/login" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800">
+          <Link href="/login" className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-800">
             <ArrowLeft className="h-4 w-4" /> Volver al inicio de sesión
           </Link>
         </div>
-        <Card className="animate-slide-up">
+        <Card className="animate-slide-up border-gray-200/80 shadow-raised">
           <CardHeader>
             <CardTitle>Recuperar contraseña</CardTitle>
             <CardDescription>Te enviaremos un enlace para restablecer tu contraseña.</CardDescription>
